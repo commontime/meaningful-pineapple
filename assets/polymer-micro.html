@@ -1,1 +1,538 @@
-%3C!--%0A@license%0ACopyright%20(c)%202014%20The%20Polymer%20Project%20Authors.%20All%20rights%20reserved.%0AThis%20code%20may%20only%20be%20used%20under%20the%20BSD%20style%20license%20found%20at%20http://polymer.github.io/LICENSE.txt%0AThe%20complete%20set%20of%20authors%20may%20be%20found%20at%20http://polymer.github.io/AUTHORS.txt%0AThe%20complete%20set%20of%20contributors%20may%20be%20found%20at%20http://polymer.github.io/CONTRIBUTORS.txt%0ACode%20distributed%20by%20Google%20as%20part%20of%20the%20polymer%20project%20is%20also%0Asubject%20to%20an%20additional%20IP%20rights%20grant%20found%20at%20http://polymer.github.io/PATENTS.txt%0A--%3E%3Cscript%3E(function%20()%20%7B%0Afunction%20resolve()%20%7B%0Adocument.body.removeAttribute('unresolved');%0A%7D%0Aif%20(window.WebComponents)%20%7B%0AaddEventListener('WebComponentsReady',%20resolve);%0A%7D%20else%20%7B%0Aif%20(document.readyState%20===%20'interactive'%20%7C%7C%20document.readyState%20===%20'complete')%20%7B%0Aresolve();%0A%7D%20else%20%7B%0AaddEventListener('DOMContentLoaded',%20resolve);%0A%7D%0A%7D%0A%7D());%0APolymer%20=%20%7B%0ASettings:%20function%20()%20%7B%0Avar%20user%20=%20window.Polymer%20%7C%7C%20%7B%7D;%0Alocation.search.slice(1).split('&').forEach(function%20(o)%20%7B%0Ao%20=%20o.split('=');%0Ao%5B0%5D%20&&%20(user%5Bo%5B0%5D%5D%20=%20o%5B1%5D%20%7C%7C%20true);%0A%7D);%0Avar%20wantShadow%20=%20user.dom%20===%20'shadow';%0Avar%20hasShadow%20=%20Boolean(Element.prototype.createShadowRoot);%0Avar%20nativeShadow%20=%20hasShadow%20&&%20!window.ShadowDOMPolyfill;%0Avar%20useShadow%20=%20wantShadow%20&&%20hasShadow;%0Avar%20hasNativeImports%20=%20Boolean('import'%20in%20document.createElement('link'));%0Avar%20useNativeImports%20=%20hasNativeImports;%0Avar%20useNativeCustomElements%20=%20!window.CustomElements%20%7C%7C%20window.CustomElements.useNative;%0Areturn%20%7B%0AwantShadow:%20wantShadow,%0AhasShadow:%20hasShadow,%0AnativeShadow:%20nativeShadow,%0AuseShadow:%20useShadow,%0AuseNativeShadow:%20useShadow%20&&%20nativeShadow,%0AuseNativeImports:%20useNativeImports,%0AuseNativeCustomElements:%20useNativeCustomElements%0A%7D;%0A%7D()%0A%7D;%0A(function%20()%20%7B%0Avar%20userPolymer%20=%20window.Polymer;%0Awindow.Polymer%20=%20function%20(prototype)%20%7B%0Avar%20ctor%20=%20desugar(prototype);%0Aprototype%20=%20ctor.prototype;%0Avar%20options%20=%20%7B%20prototype:%20prototype%20%7D;%0Aif%20(prototype.extends)%20%7B%0Aoptions.extends%20=%20prototype.extends;%0A%7D%0APolymer.telemetry._registrate(prototype);%0Adocument.registerElement(prototype.is,%20options);%0Areturn%20ctor;%0A%7D;%0Avar%20desugar%20=%20function%20(prototype)%20%7B%0Avar%20base%20=%20Polymer.Base;%0Aif%20(prototype.extends)%20%7B%0Abase%20=%20Polymer.Base._getExtendedPrototype(prototype.extends);%0A%7D%0Aprototype%20=%20Polymer.Base.chainObject(prototype,%20base);%0Aprototype.registerCallback();%0Areturn%20prototype.constructor;%0A%7D;%0Awindow.Polymer%20=%20Polymer;%0Aif%20(userPolymer)%20%7B%0Afor%20(var%20i%20in%20userPolymer)%20%7B%0APolymer%5Bi%5D%20=%20userPolymer%5Bi%5D;%0A%7D%0A%7D%0APolymer.Class%20=%20desugar;%0A%7D());%0APolymer.telemetry%20=%20%7B%0Aregistrations:%20%5B%5D,%0A_regLog:%20function%20(prototype)%20%7B%0Aconsole.log('%5B'%20+%20prototype.is%20+%20'%5D:%20registered');%0A%7D,%0A_registrate:%20function%20(prototype)%20%7B%0Athis.registrations.push(prototype);%0APolymer.log%20&&%20this._regLog(prototype);%0A%7D,%0AdumpRegistrations:%20function%20()%20%7B%0Athis.registrations.forEach(this._regLog);%0A%7D%0A%7D;%0AObject.defineProperty(window,%20'currentImport',%20%7B%0Aenumerable:%20true,%0Aconfigurable:%20true,%0Aget:%20function%20()%20%7B%0Areturn%20(document._currentScript%20%7C%7C%20document.currentScript).ownerDocument;%0A%7D%0A%7D);%0APolymer.Base%20=%20%7B%0A__isPolymerInstance__:%20true,%0A_addFeature:%20function%20(feature)%20%7B%0Athis.extend(this,%20feature);%0A%7D,%0AregisterCallback:%20function%20()%20%7B%0Athis._registerFeatures();%0Athis._doBehavior('registered');%0A%7D,%0AcreatedCallback:%20function%20()%20%7B%0APolymer.telemetry.instanceCount++;%0Athis.root%20=%20this;%0Athis._doBehavior('created');%0Athis._initFeatures();%0A%7D,%0AattachedCallback:%20function%20()%20%7B%0Athis.isAttached%20=%20true;%0Athis._doBehavior('attached');%0A%7D,%0AdetachedCallback:%20function%20()%20%7B%0Athis.isAttached%20=%20false;%0Athis._doBehavior('detached');%0A%7D,%0AattributeChangedCallback:%20function%20(name)%20%7B%0Athis._setAttributeToProperty(this,%20name);%0Athis._doBehavior('attributeChanged',%20arguments);%0A%7D,%0Aextend:%20function%20(prototype,%20api)%20%7B%0Aif%20(prototype%20&&%20api)%20%7B%0AObject.getOwnPropertyNames(api).forEach(function%20(n)%20%7B%0Athis.copyOwnProperty(n,%20api,%20prototype);%0A%7D,%20this);%0A%7D%0Areturn%20prototype%20%7C%7C%20api;%0A%7D,%0Amixin:%20function%20(target,%20source)%20%7B%0Afor%20(var%20i%20in%20source)%20%7B%0Atarget%5Bi%5D%20=%20source%5Bi%5D;%0A%7D%0Areturn%20target;%0A%7D,%0AcopyOwnProperty:%20function%20(name,%20source,%20target)%20%7B%0Avar%20pd%20=%20Object.getOwnPropertyDescriptor(source,%20name);%0Aif%20(pd)%20%7B%0AObject.defineProperty(target,%20name,%20pd);%0A%7D%0A%7D,%0A_log:%20console.log.apply.bind(console.log,%20console),%0A_warn:%20console.warn.apply.bind(console.warn,%20console),%0A_error:%20console.error.apply.bind(console.error,%20console),%0A_logf:%20function%20()%20%7B%0Areturn%20this._logPrefix.concat(%5Bthis.is%5D).concat(Array.prototype.slice.call(arguments,%200));%0A%7D%0A%7D;%0APolymer.Base._logPrefix%20=%20function%20()%20%7B%0Avar%20color%20=%20window.chrome%20%7C%7C%20/firefox/i.test(navigator.userAgent);%0Areturn%20color%20?%20%5B%0A'%25c%5B%25s::%25s%5D:',%0A'font-weight:%20bold;%20background-color:#EEEE00;'%0A%5D%20:%20%5B'%5B%25s::%25s%5D:'%5D;%0A%7D();%0APolymer.Base.chainObject%20=%20function%20(object,%20inherited)%20%7B%0Aif%20(object%20&&%20inherited%20&&%20object%20!==%20inherited)%20%7B%0Aif%20(!Object.__proto__)%20%7B%0Aobject%20=%20Polymer.Base.extend(Object.create(inherited),%20object);%0A%7D%0Aobject.__proto__%20=%20inherited;%0A%7D%0Areturn%20object;%0A%7D;%0APolymer.Base%20=%20Polymer.Base.chainObject(Polymer.Base,%20HTMLElement.prototype);%0Aif%20(window.CustomElements)%20%7B%0APolymer.instanceof%20=%20CustomElements.instanceof;%0A%7D%20else%20%7B%0APolymer.instanceof%20=%20function%20(obj,%20ctor)%20%7B%0Areturn%20obj%20instanceof%20ctor;%0A%7D;%0A%7D%0APolymer.isInstance%20=%20function%20(obj)%20%7B%0Areturn%20Boolean(obj%20&&%20obj.__isPolymerInstance__);%0A%7D;%0APolymer.telemetry.instanceCount%20=%200;%0A(function%20()%20%7B%0Avar%20modules%20=%20%7B%7D;%0Avar%20DomModule%20=%20function%20()%20%7B%0Areturn%20document.createElement('dom-module');%0A%7D;%0ADomModule.prototype%20=%20Object.create(HTMLElement.prototype);%0ADomModule.prototype.constructor%20=%20DomModule;%0ADomModule.prototype.createdCallback%20=%20function%20()%20%7B%0Avar%20id%20=%20this.id%20%7C%7C%20this.getAttribute('name')%20%7C%7C%20this.getAttribute('is');%0Aif%20(id)%20%7B%0Athis.id%20=%20id;%0Amodules%5Bid%5D%20=%20this;%0A%7D%0A%7D;%0ADomModule.prototype.import%20=%20function%20(id,%20slctr)%20%7B%0Avar%20m%20=%20modules%5Bid%5D;%0Aif%20(!m)%20%7B%0AforceDocumentUpgrade();%0Am%20=%20modules%5Bid%5D;%0A%7D%0Aif%20(m%20&&%20slctr)%20%7B%0Am%20=%20m.querySelector(slctr);%0A%7D%0Areturn%20m;%0A%7D;%0Avar%20cePolyfill%20=%20window.CustomElements%20&&%20!CustomElements.useNative;%0Aif%20(cePolyfill)%20%7B%0Avar%20ready%20=%20CustomElements.ready;%0ACustomElements.ready%20=%20true;%0A%7D%0Adocument.registerElement('dom-module',%20DomModule);%0Aif%20(cePolyfill)%20%7B%0ACustomElements.ready%20=%20ready;%0A%7D%0Afunction%20forceDocumentUpgrade()%20%7B%0Aif%20(cePolyfill)%20%7B%0Avar%20script%20=%20document._currentScript%20%7C%7C%20document.currentScript;%0Aif%20(script)%20%7B%0ACustomElements.upgradeAll(script.ownerDocument);%0A%7D%0A%7D%0A%7D%0A%7D());%0APolymer.Base._addFeature(%7B%0A_prepIs:%20function%20()%20%7B%0Aif%20(!this.is)%20%7B%0Avar%20module%20=%20(document._currentScript%20%7C%7C%20document.currentScript).parentNode;%0Aif%20(module.localName%20===%20'dom-module')%20%7B%0Avar%20id%20=%20module.id%20%7C%7C%20module.getAttribute('name')%20%7C%7C%20module.getAttribute('is');%0Athis.is%20=%20id;%0A%7D%0A%7D%0A%7D%0A%7D);%0APolymer.Base._addFeature(%7B%0Abehaviors:%20%5B%5D,%0A_prepBehaviors:%20function%20()%20%7B%0Aif%20(this.behaviors.length)%20%7B%0Athis.behaviors%20=%20this._flattenBehaviorsList(this.behaviors);%0A%7D%0Athis._prepAllBehaviors(this.behaviors);%0A%7D,%0A_flattenBehaviorsList:%20function%20(behaviors)%20%7B%0Avar%20flat%20=%20%5B%5D;%0Abehaviors.forEach(function%20(b)%20%7B%0Aif%20(b%20instanceof%20Array)%20%7B%0Aflat%20=%20flat.concat(this._flattenBehaviorsList(b));%0A%7D%20else%20if%20(b)%20%7B%0Aflat.push(b);%0A%7D%20else%20%7B%0Athis._warn(this._logf('_flattenBehaviorsList',%20'behavior%20is%20null,%20check%20for%20missing%20or%20404%20import'));%0A%7D%0A%7D,%20this);%0Areturn%20flat;%0A%7D,%0A_prepAllBehaviors:%20function%20(behaviors)%20%7B%0Afor%20(var%20i%20=%20behaviors.length%20-%201;%20i%20%3E=%200;%20i--)%20%7B%0Athis._mixinBehavior(behaviors%5Bi%5D);%0A%7D%0Afor%20(var%20i%20=%200,%20l%20=%20behaviors.length;%20i%20%3C%20l;%20i++)%20%7B%0Athis._prepBehavior(behaviors%5Bi%5D);%0A%7D%0Athis._prepBehavior(this);%0A%7D,%0A_mixinBehavior:%20function%20(b)%20%7B%0AObject.getOwnPropertyNames(b).forEach(function%20(n)%20%7B%0Aswitch%20(n)%20%7B%0Acase%20'hostAttributes':%0Acase%20'registered':%0Acase%20'properties':%0Acase%20'observers':%0Acase%20'listeners':%0Acase%20'created':%0Acase%20'attached':%0Acase%20'detached':%0Acase%20'attributeChanged':%0Acase%20'configure':%0Acase%20'ready':%0Abreak;%0Adefault:%0Aif%20(!this.hasOwnProperty(n))%20%7B%0Athis.copyOwnProperty(n,%20b,%20this);%0A%7D%0Abreak;%0A%7D%0A%7D,%20this);%0A%7D,%0A_doBehavior:%20function%20(name,%20args)%20%7B%0Athis.behaviors.forEach(function%20(b)%20%7B%0Athis._invokeBehavior(b,%20name,%20args);%0A%7D,%20this);%0Athis._invokeBehavior(this,%20name,%20args);%0A%7D,%0A_invokeBehavior:%20function%20(b,%20name,%20args)%20%7B%0Avar%20fn%20=%20b%5Bname%5D;%0Aif%20(fn)%20%7B%0Afn.apply(this,%20args%20%7C%7C%20Polymer.nar);%0A%7D%0A%7D,%0A_marshalBehaviors:%20function%20()%20%7B%0Athis.behaviors.forEach(function%20(b)%20%7B%0Athis._marshalBehavior(b);%0A%7D,%20this);%0Athis._marshalBehavior(this);%0A%7D%0A%7D);%0APolymer.Base._addFeature(%7B%0A_getExtendedPrototype:%20function%20(tag)%20%7B%0Areturn%20this._getExtendedNativePrototype(tag);%0A%7D,%0A_nativePrototypes:%20%7B%7D,%0A_getExtendedNativePrototype:%20function%20(tag)%20%7B%0Avar%20p%20=%20this._nativePrototypes%5Btag%5D;%0Aif%20(!p)%20%7B%0Avar%20np%20=%20this.getNativePrototype(tag);%0Ap%20=%20this.extend(Object.create(np),%20Polymer.Base);%0Athis._nativePrototypes%5Btag%5D%20=%20p;%0A%7D%0Areturn%20p;%0A%7D,%0AgetNativePrototype:%20function%20(tag)%20%7B%0Areturn%20Object.getPrototypeOf(document.createElement(tag));%0A%7D%0A%7D);%0APolymer.Base._addFeature(%7B%0A_prepConstructor:%20function%20()%20%7B%0Athis._factoryArgs%20=%20this.extends%20?%20%5B%0Athis.extends,%0Athis.is%0A%5D%20:%20%5Bthis.is%5D;%0Avar%20ctor%20=%20function%20()%20%7B%0Areturn%20this._factory(arguments);%0A%7D;%0Aif%20(this.hasOwnProperty('extends'))%20%7B%0Actor.extends%20=%20this.extends;%0A%7D%0AObject.defineProperty(this,%20'constructor',%20%7B%0Avalue:%20ctor,%0Awritable:%20true,%0Aconfigurable:%20true%0A%7D);%0Actor.prototype%20=%20this;%0A%7D,%0A_factory:%20function%20(args)%20%7B%0Avar%20elt%20=%20document.createElement.apply(document,%20this._factoryArgs);%0Aif%20(this.factoryImpl)%20%7B%0Athis.factoryImpl.apply(elt,%20args);%0A%7D%0Areturn%20elt;%0A%7D%0A%7D);%0APolymer.nob%20=%20Object.create(null);%0APolymer.Base._addFeature(%7B%0Aproperties:%20%7B%7D,%0AgetPropertyInfo:%20function%20(property)%20%7B%0Avar%20info%20=%20this._getPropertyInfo(property,%20this.properties);%0Aif%20(!info)%20%7B%0Athis.behaviors.some(function%20(b)%20%7B%0Areturn%20info%20=%20this._getPropertyInfo(property,%20b.properties);%0A%7D,%20this);%0A%7D%0Areturn%20info%20%7C%7C%20Polymer.nob;%0A%7D,%0A_getPropertyInfo:%20function%20(property,%20properties)%20%7B%0Avar%20p%20=%20properties%20&&%20properties%5Bproperty%5D;%0Aif%20(typeof%20p%20===%20'function')%20%7B%0Ap%20=%20properties%5Bproperty%5D%20=%20%7B%20type:%20p%20%7D;%0A%7D%0Aif%20(p)%20%7B%0Ap.defined%20=%20true;%0A%7D%0Areturn%20p;%0A%7D%0A%7D);%0APolymer.CaseMap%20=%20%7B%0A_caseMap:%20%7B%7D,%0AdashToCamelCase:%20function%20(dash)%20%7B%0Avar%20mapped%20=%20Polymer.CaseMap._caseMap%5Bdash%5D;%0Aif%20(mapped)%20%7B%0Areturn%20mapped;%0A%7D%0Aif%20(dash.indexOf('-')%20%3C%200)%20%7B%0Areturn%20Polymer.CaseMap._caseMap%5Bdash%5D%20=%20dash;%0A%7D%0Areturn%20Polymer.CaseMap._caseMap%5Bdash%5D%20=%20dash.replace(/-(%5Ba-z%5D)/g,%20function%20(m)%20%7B%0Areturn%20m%5B1%5D.toUpperCase();%0A%7D);%0A%7D,%0AcamelToDashCase:%20function%20(camel)%20%7B%0Avar%20mapped%20=%20Polymer.CaseMap._caseMap%5Bcamel%5D;%0Aif%20(mapped)%20%7B%0Areturn%20mapped;%0A%7D%0Areturn%20Polymer.CaseMap._caseMap%5Bcamel%5D%20=%20camel.replace(/(%5Ba-z%5D%5BA-Z%5D)/g,%20function%20(g)%20%7B%0Areturn%20g%5B0%5D%20+%20'-'%20+%20g%5B1%5D.toLowerCase();%0A%7D);%0A%7D%0A%7D;%0APolymer.Base._addFeature(%7B%0A_prepAttributes:%20function%20()%20%7B%0Athis._aggregatedAttributes%20=%20%7B%7D;%0A%7D,%0A_addHostAttributes:%20function%20(attributes)%20%7B%0Aif%20(attributes)%20%7B%0Athis.mixin(this._aggregatedAttributes,%20attributes);%0A%7D%0A%7D,%0A_marshalHostAttributes:%20function%20()%20%7B%0Athis._applyAttributes(this,%20this._aggregatedAttributes);%0A%7D,%0A_applyAttributes:%20function%20(node,%20attr$)%20%7B%0Afor%20(var%20n%20in%20attr$)%20%7B%0Aif%20(!this.hasAttribute(n)%20&&%20n%20!==%20'class')%20%7B%0Athis.serializeValueToAttribute(attr$%5Bn%5D,%20n,%20this);%0A%7D%0A%7D%0A%7D,%0A_marshalAttributes:%20function%20()%20%7B%0Athis._takeAttributesToModel(this);%0A%7D,%0A_takeAttributesToModel:%20function%20(model)%20%7B%0Afor%20(var%20i%20=%200,%20l%20=%20this.attributes.length;%20i%20%3C%20l;%20i++)%20%7B%0Athis._setAttributeToProperty(model,%20this.attributes%5Bi%5D.name);%0A%7D%0A%7D,%0A_setAttributeToProperty:%20function%20(model,%20attrName)%20%7B%0Aif%20(!this._serializing)%20%7B%0Avar%20propName%20=%20Polymer.CaseMap.dashToCamelCase(attrName);%0Avar%20info%20=%20this.getPropertyInfo(propName);%0Aif%20(info.defined%20%7C%7C%20this._propertyEffects%20&&%20this._propertyEffects%5BpropName%5D)%20%7B%0Avar%20val%20=%20this.getAttribute(attrName);%0Amodel%5BpropName%5D%20=%20this.deserialize(val,%20info.type);%0A%7D%0A%7D%0A%7D,%0A_serializing:%20false,%0AreflectPropertyToAttribute:%20function%20(name)%20%7B%0Athis._serializing%20=%20true;%0Athis.serializeValueToAttribute(this%5Bname%5D,%20Polymer.CaseMap.camelToDashCase(name));%0Athis._serializing%20=%20false;%0A%7D,%0AserializeValueToAttribute:%20function%20(value,%20attribute,%20node)%20%7B%0Avar%20str%20=%20this.serialize(value);%0A(node%20%7C%7C%20this)%5Bstr%20===%20undefined%20?%20'removeAttribute'%20:%20'setAttribute'%5D(attribute,%20str);%0A%7D,%0Adeserialize:%20function%20(value,%20type)%20%7B%0Aswitch%20(type)%20%7B%0Acase%20Number:%0Avalue%20=%20Number(value);%0Abreak;%0Acase%20Boolean:%0Avalue%20=%20value%20!==%20null;%0Abreak;%0Acase%20Object:%0Atry%20%7B%0Avalue%20=%20JSON.parse(value);%0A%7D%20catch%20(x)%20%7B%0A%7D%0Abreak;%0Acase%20Array:%0Atry%20%7B%0Avalue%20=%20JSON.parse(value);%0A%7D%20catch%20(x)%20%7B%0Avalue%20=%20null;%0Aconsole.warn('Polymer::Attributes:%20couldn%60t%20decode%20Array%20as%20JSON');%0A%7D%0Abreak;%0Acase%20Date:%0Avalue%20=%20new%20Date(value);%0Abreak;%0Acase%20String:%0Adefault:%0Abreak;%0A%7D%0Areturn%20value;%0A%7D,%0Aserialize:%20function%20(value)%20%7B%0Aswitch%20(typeof%20value)%20%7B%0Acase%20'boolean':%0Areturn%20value%20?%20''%20:%20undefined;%0Acase%20'object':%0Aif%20(value%20instanceof%20Date)%20%7B%0Areturn%20value;%0A%7D%20else%20if%20(value)%20%7B%0Atry%20%7B%0Areturn%20JSON.stringify(value);%0A%7D%20catch%20(x)%20%7B%0Areturn%20'';%0A%7D%0A%7D%0Adefault:%0Areturn%20value%20!=%20null%20?%20value%20:%20undefined;%0A%7D%0A%7D%0A%7D);%0APolymer.Base._addFeature(%7B%0A_setupDebouncers:%20function%20()%20%7B%0Athis._debouncers%20=%20%7B%7D;%0A%7D,%0Adebounce:%20function%20(jobName,%20callback,%20wait)%20%7B%0Athis._debouncers%5BjobName%5D%20=%20Polymer.Debounce.call(this,%20this._debouncers%5BjobName%5D,%20callback,%20wait);%0A%7D,%0AisDebouncerActive:%20function%20(jobName)%20%7B%0Avar%20debouncer%20=%20this._debouncers%5BjobName%5D;%0Areturn%20debouncer%20&&%20debouncer.finish;%0A%7D,%0AflushDebouncer:%20function%20(jobName)%20%7B%0Avar%20debouncer%20=%20this._debouncers%5BjobName%5D;%0Aif%20(debouncer)%20%7B%0Adebouncer.complete();%0A%7D%0A%7D,%0AcancelDebouncer:%20function%20(jobName)%20%7B%0Avar%20debouncer%20=%20this._debouncers%5BjobName%5D;%0Aif%20(debouncer)%20%7B%0Adebouncer.stop();%0A%7D%0A%7D%0A%7D);%0APolymer.version%20=%20'1.0.7';%0APolymer.Base._addFeature(%7B%0A_registerFeatures:%20function%20()%20%7B%0Athis._prepIs();%0Athis._prepAttributes();%0Athis._prepBehaviors();%0Athis._prepConstructor();%0A%7D,%0A_prepBehavior:%20function%20(b)%20%7B%0Athis._addHostAttributes(b.hostAttributes);%0A%7D,%0A_marshalBehavior:%20function%20(b)%20%7B%0A%7D,%0A_initFeatures:%20function%20()%20%7B%0Athis._marshalHostAttributes();%0Athis._setupDebouncers();%0Athis._marshalBehaviors();%0A%7D%0A%7D);%3C/script%3E%0A%0A
+<!--
+@license
+Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+--><script>(function () {
+function resolve() {
+document.body.removeAttribute('unresolved');
+}
+if (window.WebComponents) {
+addEventListener('WebComponentsReady', resolve);
+} else {
+if (document.readyState === 'interactive' || document.readyState === 'complete') {
+resolve();
+} else {
+addEventListener('DOMContentLoaded', resolve);
+}
+}
+}());
+Polymer = {
+Settings: function () {
+var user = window.Polymer || {};
+location.search.slice(1).split('&').forEach(function (o) {
+o = o.split('=');
+o[0] && (user[o[0]] = o[1] || true);
+});
+var wantShadow = user.dom === 'shadow';
+var hasShadow = Boolean(Element.prototype.createShadowRoot);
+var nativeShadow = hasShadow && !window.ShadowDOMPolyfill;
+var useShadow = wantShadow && hasShadow;
+var hasNativeImports = Boolean('import' in document.createElement('link'));
+var useNativeImports = hasNativeImports;
+var useNativeCustomElements = !window.CustomElements || window.CustomElements.useNative;
+return {
+wantShadow: wantShadow,
+hasShadow: hasShadow,
+nativeShadow: nativeShadow,
+useShadow: useShadow,
+useNativeShadow: useShadow && nativeShadow,
+useNativeImports: useNativeImports,
+useNativeCustomElements: useNativeCustomElements
+};
+}()
+};
+(function () {
+var userPolymer = window.Polymer;
+window.Polymer = function (prototype) {
+var ctor = desugar(prototype);
+prototype = ctor.prototype;
+var options = { prototype: prototype };
+if (prototype.extends) {
+options.extends = prototype.extends;
+}
+Polymer.telemetry._registrate(prototype);
+document.registerElement(prototype.is, options);
+return ctor;
+};
+var desugar = function (prototype) {
+var base = Polymer.Base;
+if (prototype.extends) {
+base = Polymer.Base._getExtendedPrototype(prototype.extends);
+}
+prototype = Polymer.Base.chainObject(prototype, base);
+prototype.registerCallback();
+return prototype.constructor;
+};
+window.Polymer = Polymer;
+if (userPolymer) {
+for (var i in userPolymer) {
+Polymer[i] = userPolymer[i];
+}
+}
+Polymer.Class = desugar;
+}());
+Polymer.telemetry = {
+registrations: [],
+_regLog: function (prototype) {
+console.log('[' + prototype.is + ']: registered');
+},
+_registrate: function (prototype) {
+this.registrations.push(prototype);
+Polymer.log && this._regLog(prototype);
+},
+dumpRegistrations: function () {
+this.registrations.forEach(this._regLog);
+}
+};
+Object.defineProperty(window, 'currentImport', {
+enumerable: true,
+configurable: true,
+get: function () {
+return (document._currentScript || document.currentScript).ownerDocument;
+}
+});
+Polymer.Base = {
+__isPolymerInstance__: true,
+_addFeature: function (feature) {
+this.extend(this, feature);
+},
+registerCallback: function () {
+this._registerFeatures();
+this._doBehavior('registered');
+},
+createdCallback: function () {
+Polymer.telemetry.instanceCount++;
+this.root = this;
+this._doBehavior('created');
+this._initFeatures();
+},
+attachedCallback: function () {
+this.isAttached = true;
+this._doBehavior('attached');
+},
+detachedCallback: function () {
+this.isAttached = false;
+this._doBehavior('detached');
+},
+attributeChangedCallback: function (name) {
+this._setAttributeToProperty(this, name);
+this._doBehavior('attributeChanged', arguments);
+},
+extend: function (prototype, api) {
+if (prototype && api) {
+Object.getOwnPropertyNames(api).forEach(function (n) {
+this.copyOwnProperty(n, api, prototype);
+}, this);
+}
+return prototype || api;
+},
+mixin: function (target, source) {
+for (var i in source) {
+target[i] = source[i];
+}
+return target;
+},
+copyOwnProperty: function (name, source, target) {
+var pd = Object.getOwnPropertyDescriptor(source, name);
+if (pd) {
+Object.defineProperty(target, name, pd);
+}
+},
+_log: console.log.apply.bind(console.log, console),
+_warn: console.warn.apply.bind(console.warn, console),
+_error: console.error.apply.bind(console.error, console),
+_logf: function () {
+return this._logPrefix.concat([this.is]).concat(Array.prototype.slice.call(arguments, 0));
+}
+};
+Polymer.Base._logPrefix = function () {
+var color = window.chrome || /firefox/i.test(navigator.userAgent);
+return color ? [
+'%c[%s::%s]:',
+'font-weight: bold; background-color:#EEEE00;'
+] : ['[%s::%s]:'];
+}();
+Polymer.Base.chainObject = function (object, inherited) {
+if (object && inherited && object !== inherited) {
+if (!Object.__proto__) {
+object = Polymer.Base.extend(Object.create(inherited), object);
+}
+object.__proto__ = inherited;
+}
+return object;
+};
+Polymer.Base = Polymer.Base.chainObject(Polymer.Base, HTMLElement.prototype);
+if (window.CustomElements) {
+Polymer.instanceof = CustomElements.instanceof;
+} else {
+Polymer.instanceof = function (obj, ctor) {
+return obj instanceof ctor;
+};
+}
+Polymer.isInstance = function (obj) {
+return Boolean(obj && obj.__isPolymerInstance__);
+};
+Polymer.telemetry.instanceCount = 0;
+(function () {
+var modules = {};
+var DomModule = function () {
+return document.createElement('dom-module');
+};
+DomModule.prototype = Object.create(HTMLElement.prototype);
+DomModule.prototype.constructor = DomModule;
+DomModule.prototype.createdCallback = function () {
+var id = this.id || this.getAttribute('name') || this.getAttribute('is');
+if (id) {
+this.id = id;
+modules[id] = this;
+}
+};
+DomModule.prototype.import = function (id, slctr) {
+var m = modules[id];
+if (!m) {
+forceDocumentUpgrade();
+m = modules[id];
+}
+if (m && slctr) {
+m = m.querySelector(slctr);
+}
+return m;
+};
+var cePolyfill = window.CustomElements && !CustomElements.useNative;
+if (cePolyfill) {
+var ready = CustomElements.ready;
+CustomElements.ready = true;
+}
+document.registerElement('dom-module', DomModule);
+if (cePolyfill) {
+CustomElements.ready = ready;
+}
+function forceDocumentUpgrade() {
+if (cePolyfill) {
+var script = document._currentScript || document.currentScript;
+if (script) {
+CustomElements.upgradeAll(script.ownerDocument);
+}
+}
+}
+}());
+Polymer.Base._addFeature({
+_prepIs: function () {
+if (!this.is) {
+var module = (document._currentScript || document.currentScript).parentNode;
+if (module.localName === 'dom-module') {
+var id = module.id || module.getAttribute('name') || module.getAttribute('is');
+this.is = id;
+}
+}
+}
+});
+Polymer.Base._addFeature({
+behaviors: [],
+_prepBehaviors: function () {
+if (this.behaviors.length) {
+this.behaviors = this._flattenBehaviorsList(this.behaviors);
+}
+this._prepAllBehaviors(this.behaviors);
+},
+_flattenBehaviorsList: function (behaviors) {
+var flat = [];
+behaviors.forEach(function (b) {
+if (b instanceof Array) {
+flat = flat.concat(this._flattenBehaviorsList(b));
+} else if (b) {
+flat.push(b);
+} else {
+this._warn(this._logf('_flattenBehaviorsList', 'behavior is null, check for missing or 404 import'));
+}
+}, this);
+return flat;
+},
+_prepAllBehaviors: function (behaviors) {
+for (var i = behaviors.length - 1; i >= 0; i--) {
+this._mixinBehavior(behaviors[i]);
+}
+for (var i = 0, l = behaviors.length; i < l; i++) {
+this._prepBehavior(behaviors[i]);
+}
+this._prepBehavior(this);
+},
+_mixinBehavior: function (b) {
+Object.getOwnPropertyNames(b).forEach(function (n) {
+switch (n) {
+case 'hostAttributes':
+case 'registered':
+case 'properties':
+case 'observers':
+case 'listeners':
+case 'created':
+case 'attached':
+case 'detached':
+case 'attributeChanged':
+case 'configure':
+case 'ready':
+break;
+default:
+if (!this.hasOwnProperty(n)) {
+this.copyOwnProperty(n, b, this);
+}
+break;
+}
+}, this);
+},
+_doBehavior: function (name, args) {
+this.behaviors.forEach(function (b) {
+this._invokeBehavior(b, name, args);
+}, this);
+this._invokeBehavior(this, name, args);
+},
+_invokeBehavior: function (b, name, args) {
+var fn = b[name];
+if (fn) {
+fn.apply(this, args || Polymer.nar);
+}
+},
+_marshalBehaviors: function () {
+this.behaviors.forEach(function (b) {
+this._marshalBehavior(b);
+}, this);
+this._marshalBehavior(this);
+}
+});
+Polymer.Base._addFeature({
+_getExtendedPrototype: function (tag) {
+return this._getExtendedNativePrototype(tag);
+},
+_nativePrototypes: {},
+_getExtendedNativePrototype: function (tag) {
+var p = this._nativePrototypes[tag];
+if (!p) {
+var np = this.getNativePrototype(tag);
+p = this.extend(Object.create(np), Polymer.Base);
+this._nativePrototypes[tag] = p;
+}
+return p;
+},
+getNativePrototype: function (tag) {
+return Object.getPrototypeOf(document.createElement(tag));
+}
+});
+Polymer.Base._addFeature({
+_prepConstructor: function () {
+this._factoryArgs = this.extends ? [
+this.extends,
+this.is
+] : [this.is];
+var ctor = function () {
+return this._factory(arguments);
+};
+if (this.hasOwnProperty('extends')) {
+ctor.extends = this.extends;
+}
+Object.defineProperty(this, 'constructor', {
+value: ctor,
+writable: true,
+configurable: true
+});
+ctor.prototype = this;
+},
+_factory: function (args) {
+var elt = document.createElement.apply(document, this._factoryArgs);
+if (this.factoryImpl) {
+this.factoryImpl.apply(elt, args);
+}
+return elt;
+}
+});
+Polymer.nob = Object.create(null);
+Polymer.Base._addFeature({
+properties: {},
+getPropertyInfo: function (property) {
+var info = this._getPropertyInfo(property, this.properties);
+if (!info) {
+this.behaviors.some(function (b) {
+return info = this._getPropertyInfo(property, b.properties);
+}, this);
+}
+return info || Polymer.nob;
+},
+_getPropertyInfo: function (property, properties) {
+var p = properties && properties[property];
+if (typeof p === 'function') {
+p = properties[property] = { type: p };
+}
+if (p) {
+p.defined = true;
+}
+return p;
+}
+});
+Polymer.CaseMap = {
+_caseMap: {},
+dashToCamelCase: function (dash) {
+var mapped = Polymer.CaseMap._caseMap[dash];
+if (mapped) {
+return mapped;
+}
+if (dash.indexOf('-') < 0) {
+return Polymer.CaseMap._caseMap[dash] = dash;
+}
+return Polymer.CaseMap._caseMap[dash] = dash.replace(/-([a-z])/g, function (m) {
+return m[1].toUpperCase();
+});
+},
+camelToDashCase: function (camel) {
+var mapped = Polymer.CaseMap._caseMap[camel];
+if (mapped) {
+return mapped;
+}
+return Polymer.CaseMap._caseMap[camel] = camel.replace(/([a-z][A-Z])/g, function (g) {
+return g[0] + '-' + g[1].toLowerCase();
+});
+}
+};
+Polymer.Base._addFeature({
+_prepAttributes: function () {
+this._aggregatedAttributes = {};
+},
+_addHostAttributes: function (attributes) {
+if (attributes) {
+this.mixin(this._aggregatedAttributes, attributes);
+}
+},
+_marshalHostAttributes: function () {
+this._applyAttributes(this, this._aggregatedAttributes);
+},
+_applyAttributes: function (node, attr$) {
+for (var n in attr$) {
+if (!this.hasAttribute(n) && n !== 'class') {
+this.serializeValueToAttribute(attr$[n], n, this);
+}
+}
+},
+_marshalAttributes: function () {
+this._takeAttributesToModel(this);
+},
+_takeAttributesToModel: function (model) {
+for (var i = 0, l = this.attributes.length; i < l; i++) {
+this._setAttributeToProperty(model, this.attributes[i].name);
+}
+},
+_setAttributeToProperty: function (model, attrName) {
+if (!this._serializing) {
+var propName = Polymer.CaseMap.dashToCamelCase(attrName);
+var info = this.getPropertyInfo(propName);
+if (info.defined || this._propertyEffects && this._propertyEffects[propName]) {
+var val = this.getAttribute(attrName);
+model[propName] = this.deserialize(val, info.type);
+}
+}
+},
+_serializing: false,
+reflectPropertyToAttribute: function (name) {
+this._serializing = true;
+this.serializeValueToAttribute(this[name], Polymer.CaseMap.camelToDashCase(name));
+this._serializing = false;
+},
+serializeValueToAttribute: function (value, attribute, node) {
+var str = this.serialize(value);
+(node || this)[str === undefined ? 'removeAttribute' : 'setAttribute'](attribute, str);
+},
+deserialize: function (value, type) {
+switch (type) {
+case Number:
+value = Number(value);
+break;
+case Boolean:
+value = value !== null;
+break;
+case Object:
+try {
+value = JSON.parse(value);
+} catch (x) {
+}
+break;
+case Array:
+try {
+value = JSON.parse(value);
+} catch (x) {
+value = null;
+console.warn('Polymer::Attributes: couldn`t decode Array as JSON');
+}
+break;
+case Date:
+value = new Date(value);
+break;
+case String:
+default:
+break;
+}
+return value;
+},
+serialize: function (value) {
+switch (typeof value) {
+case 'boolean':
+return value ? '' : undefined;
+case 'object':
+if (value instanceof Date) {
+return value;
+} else if (value) {
+try {
+return JSON.stringify(value);
+} catch (x) {
+return '';
+}
+}
+default:
+return value != null ? value : undefined;
+}
+}
+});
+Polymer.Base._addFeature({
+_setupDebouncers: function () {
+this._debouncers = {};
+},
+debounce: function (jobName, callback, wait) {
+this._debouncers[jobName] = Polymer.Debounce.call(this, this._debouncers[jobName], callback, wait);
+},
+isDebouncerActive: function (jobName) {
+var debouncer = this._debouncers[jobName];
+return debouncer && debouncer.finish;
+},
+flushDebouncer: function (jobName) {
+var debouncer = this._debouncers[jobName];
+if (debouncer) {
+debouncer.complete();
+}
+},
+cancelDebouncer: function (jobName) {
+var debouncer = this._debouncers[jobName];
+if (debouncer) {
+debouncer.stop();
+}
+}
+});
+Polymer.version = '1.0.7';
+Polymer.Base._addFeature({
+_registerFeatures: function () {
+this._prepIs();
+this._prepAttributes();
+this._prepBehaviors();
+this._prepConstructor();
+},
+_prepBehavior: function (b) {
+this._addHostAttributes(b.hostAttributes);
+},
+_marshalBehavior: function (b) {
+},
+_initFeatures: function () {
+this._marshalHostAttributes();
+this._setupDebouncers();
+this._marshalBehaviors();
+}
+});</script>
+
