@@ -14,3 +14,55 @@ p {
 .page-frame {
     background-color: #FFF;
 }
+/* FORMS */
+.input-group-addon {
+    border: 0;
+    border-radius: 0;
+}
+.form-group.has-success .input-group .input-group-addon {
+    background-color: #ebf0ea;
+}
+.form-group.has-error .input-group .input-group-addon {
+    background-color: #f7e5e5;
+}
+.form-control {
+    -webkit-appearance: none;
+    outline: 0 !important;
+    -webkit-outline: none;
+    border-radius: 0;
+    -webkit-box-shadow: none !important;
+    -moz-box-shadow: none !important;
+    box-shadow: none !important;
+}
+.btn {
+    border-radius: 0;
+}
+.btn-primary {
+    background-color: #016299;
+}
+.navbar-default {
+    background-color: #016299;
+    color: #FFF;
+    border: none;
+}
+.form-group.item-date .input-group-addon,
+.form-group.item-time .input-group-addon {
+    background-color: #016299 !important;
+}
+slider span.pointer {
+    background: -webkit-linear-gradient(top, #0186c9, #016299);
+}
+.switch.checked {
+    background: #016299;
+    border-color: #016299;
+}
+.switch .switch-text .on {
+    color: #016299;
+}
+.flexbox-container .navbar-default.row-item:last-child {
+    background-color: #CCC;
+}
+.flexbox-container .navbar-default.row-item:last-child .btn {
+    background-color: #016299;
+    color: #FFF;
+}
